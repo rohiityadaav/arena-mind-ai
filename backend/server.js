@@ -22,14 +22,26 @@ app.options('*', cors()); // Enable preflight handling globally
 
 app.use(express.json());
 
+// Request logger for debugging deployment CORS / 404 issues
+app.use((req, res, next) => {
+  console.log(`[DEPLOY_DEBUG] Incoming: ${req.method} ${req.originalUrl} | Origin: ${req.headers.origin || 'No-Origin'}`);
+  next();
+});
+
 // Routes
+console.log('[DEPLOY_DEBUG] Mounting Express API routes...');
 app.use('/api/stadium', stadiumRouter);
+console.log('[DEPLOY_DEBUG] Mounted: /api/stadium');
 app.use('/api/alerts', alertsRouter);
+console.log('[DEPLOY_DEBUG] Mounted: /api/alerts');
 app.use('/api/feedback', feedbackRouter);
+console.log('[DEPLOY_DEBUG] Mounted: /api/feedback');
 app.use('/api/chat', chatRouter);
+console.log('[DEPLOY_DEBUG] Mounted: /api/chat');
 
 // Basic health check
 app.get('/api/health', (req, res) => {
+  console.log('[DEPLOY_DEBUG] /api/health check executed.');
   res.json({ status: 'ok' });
 });
 
