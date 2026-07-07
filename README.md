@@ -210,3 +210,21 @@ Follow these step-by-step actions to experience the ArenaMind-AI command console
   - Fully supports Google Gemini (`GEMINI_API_KEY`) and OpenAI (`OPENAI_API_KEY`) with an automated rules-based local engine fallback.
   - API keys are handled strictly on the server and are never exposed to the client, terminal outputs, or console logs.
 
+---
+
+## 🔧 Production Deployment Troubleshooting
+
+If you encounter the error *"Sorry, I had trouble reaching the command server"* during a live production deployment (e.g. Vercel for Frontend and Render/Railway for Backend):
+
+1. **Frontend API URL (`VITE_API_BASE_URL`)**:
+   - In your frontend hosting platform's dashboard (e.g., Vercel), add an Environment Variable named `VITE_API_BASE_URL`.
+   - Set its value to the URL of your deployed Express backend (e.g., `https://your-backend-app.onrender.com`).
+   - If `VITE_API_BASE_URL` is omitted, the frontend defaults to `''` (empty string) to route requests via the local Vite dev server proxy (`localhost:3000 -> localhost:5000`).
+
+2. **CORS Configuration**:
+   - The Express server in `server.js` initiates `app.use(cors())` directly, permitting cross-origin requests from the client.
+
+3. **API Routing Paths**:
+   - Confirm all endpoints route strictly under `/api/**` (e.g. `${BASE_URL}/api/chat`), matching the Express routes defined in `backend/server.js`.
+
+
