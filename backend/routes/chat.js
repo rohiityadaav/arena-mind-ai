@@ -367,7 +367,19 @@ router.post('/', async (req, res) => {
   try {
     // 1. Get or Create Session
     let activeSessionId = sessionId;
-    if (!activeSessionId) {
+    let sessionExists = false;
+    if (activeSessionId) {
+      try {
+        const existingSession = await dbGet('SELECT id FROM assistant_sessions WHERE id = ?', [activeSessionId]);
+        if (existingSession) {
+          sessionExists = true;
+        }
+      } catch (err) {
+        console.error('[CHAT_ROUTER] Failed to query existing session:', err.message);
+      }
+    }
+
+    if (!activeSessionId || !sessionExists) {
       activeSessionId = generateUuid();
       const stadium = await dbGet('SELECT id FROM stadiums LIMIT 1');
       const stadiumId = stadium ? stadium.id : null;
@@ -427,7 +439,7 @@ POINTS OF INTEREST:
 ${pois.map(p => `- ${p.name} (Type: ${p.poi_type}, Accessible: ${p.is_accessible ? 'Yes' : 'No'}, Description: ${p.description})`).join('\n')}
 
 ACTIVE OPERATIONAL ALERTS:
-${alerts.map(a => `- [SEVERITY: ${a.severity.toUpperCase()}] ${a.title}: ${a.description} (Zone: ${a.zone_id ? zones.find(z => z.id === a.zone_id)?.name : 'All'})`).join('\n')}
+${alerts.map(a => `- [SEVERITY: ${(a.severity || 'low').toUpperCase()}] ${a.title}: ${a.description} (Zone: ${a.zone_id ? zones.find(z => z.id === a.zone_id)?.name : 'All'})`).join('\n')}
 
 PRE-CALCULATED ROUTING INFORMATION:
 ${routes.map(r => `- From "${r.from_point}" to "${r.to_point}": takes ${r.estimated_time_minutes} mins. Crowd Risk: ${r.crowd_risk_level}. Accessibility Notes: ${r.accessibility_notes}. Steps: ${r.route_data}`).join('\n')}
