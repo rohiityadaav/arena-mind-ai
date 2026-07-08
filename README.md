@@ -1,6 +1,10 @@
 # ArenaMind-AI - Smart Stadium & Tournament Operations Command
 
+> [!IMPORTANT]
+> Live frontend is deployed on Vercel; backend is deployed on Render but currently facing connection issues due to CORS/env constraints. For full evaluation, please run the app locally as documented below.
+
 ArenaMind-AI is a next-generation GenAI-powered stadium assistant and tournament command platform designed for FIFA World Cup 2026-style venues (showcased with a high-fidelity MetLife Stadium demo). 
+
 
 The platform reduces matchday friction for fans, volunteers, and operators by offering real-time multilingual and accessibility-aware routing, crowd congestion warnings, and an operational incident management dashboard.
 
