@@ -819,9 +819,9 @@ export default function App() {
     }
   };
 
-  const renderStadiumMapWidget = () => {
+  const renderStadiumMapWidget = (extraClass = '') => {
     return (
-      <div className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 space-y-3">
+      <div className={`bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 space-y-3 ${extraClass}`}>
         <div className="flex justify-between items-center border-b border-neutral-900 pb-2">
           <span className="text-[9px] font-mono tracking-widest text-neutral-500 uppercase block font-bold">
             {role === 'staff' ? 'ZONE_MAP_01' : 'STADIUM DYNAMICS'}
@@ -1039,8 +1039,8 @@ export default function App() {
           {activeFeature === 'map' && (
             <div className="w-full h-full grid grid-cols-12 gap-6 items-stretch animate-fadeIn">
               {/* Map (Col-Span-7) */}
-              <div className="col-span-7 bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 flex flex-col justify-between">
-                {renderStadiumMapWidget()}
+              <div className="col-span-7 flex flex-col h-full">
+                {renderStadiumMapWidget('h-full flex flex-col justify-between')}
               </div>
 
               {/* Telemetry (Col-Span-5) */}
