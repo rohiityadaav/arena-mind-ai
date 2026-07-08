@@ -58,6 +58,8 @@ export default function App() {
   const [newAlertSeverity, setNewAlertSeverity] = useState('medium');
   const [newAlertZoneId, setNewAlertZoneId] = useState('');
 
+  const activeAlerts = alerts.filter(a => a.status !== 'resolved');
+
   const t = translations[language] || translations.en;
 
   // Load Stadium & Alerts Data
@@ -763,6 +765,10 @@ export default function App() {
       </div>
     );
   };
+
+  if (!started) {
+    return <LandingPage onStart={handleStart} />;
+  }
 
   return (
     <div className={`min-h-screen flex flex-col bg-black text-white font-sans ${
