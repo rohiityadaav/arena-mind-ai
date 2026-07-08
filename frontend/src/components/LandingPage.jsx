@@ -32,7 +32,7 @@ export default function LandingPage({ onStart }) {
         <div className="flex items-center gap-3">
           <Menu className="h-5 w-5 text-neutral-400 cursor-pointer" />
           <h1 className="text-sm font-black tracking-[0.2em] text-white uppercase font-sans">
-            WC2026 COMMAND
+            ArenaMind-AI
           </h1>
         </div>
         <div className="h-8 w-8 rounded-full border border-neutral-800 overflow-hidden bg-neutral-900 flex items-center justify-center">
