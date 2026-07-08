@@ -1,7 +1,7 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-// Debug log the BASE_URL at runtime
-console.log('[DEPLOY_DEBUG] API BASE_URL at runtime:', BASE_URL || '(Vite Local Proxy)');
+// Debug logs requested
+console.log("[FINAL_DEBUG] BASE_URL at runtime:", BASE_URL);
 
 export async function getStadiumData() {
   const url = `${BASE_URL}/api/stadium`;
@@ -18,7 +18,7 @@ export async function getStadiumData() {
     }
     return await res.json();
   } catch (err) {
-    console.error('[DEPLOY_DEBUG] getStadiumData failure:', err);
+    console.error("[FINAL_DEBUG] getStadiumData error:", err);
     throw err;
   }
 }
@@ -38,7 +38,7 @@ export async function getAlerts() {
     }
     return await res.json();
   } catch (err) {
-    console.error('[DEPLOY_DEBUG] getAlerts failure:', err);
+    console.error("[FINAL_DEBUG] getAlerts error:", err);
     throw err;
   }
 }
@@ -71,7 +71,7 @@ export async function sendChatMessage(sessionId, message, role, language, access
     }
     return await res.json();
   } catch (err) {
-    console.error('[DEPLOY_DEBUG] sendChatMessage failure:', err);
+    console.error("[FINAL_DEBUG] sendChatMessage error:", err, "BASE_URL:", BASE_URL);
     throw err;
   }
 }

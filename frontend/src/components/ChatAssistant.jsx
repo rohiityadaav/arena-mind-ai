@@ -66,6 +66,8 @@ export default function ChatAssistant({
       };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (err) {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+      console.error("[FINAL_DEBUG] sendChatMessage error:", err, "BASE_URL:", BASE_URL);
       console.error('[DEPLOY_DEBUG] Chat request failed:', err);
       
       const isNetworkError = err.name === 'TypeError' || err.message.toLowerCase().includes('fetch') || err.message.toLowerCase().includes('network') || err.message.toLowerCase().includes('failed');
