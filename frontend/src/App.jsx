@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const [started, setStarted] = useState(true);
+  const [started, setStarted] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
+  const [activeFeature, setActiveFeature] = useState('hero');
   const [role, setRole] = useState('fan');
   const [language, setLanguage] = useState('en');
   const [accessibilityNeeds, setAccessibilityNeeds] = useState({
@@ -794,7 +795,13 @@ export default function App() {
       `}</style>
 
       {/* Top Console Navigation */}
-      <Header language={language} onLogout={handleLogout} toggleSidebar={toggleSidebar} />
+      <Header 
+        language={language} 
+        onLogout={handleLogout} 
+        toggleSidebar={toggleSidebar} 
+        activeFeature={activeFeature}
+        setActiveFeature={setActiveFeature}
+      />
 
       {/* Slide-out Sidebar Drawer Overlay (for Mobile & Tablet viewports) */}
       {isSidebarOpen && (
@@ -827,34 +834,277 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= LAPTOP/DESKTOP VIEWPORT LAYOUT (Large Screen Grid) ================= */}
-        <div className="hidden lg:grid grid-cols-12 gap-6 items-stretch h-[calc(100vh-140px)] min-h-[680px]">
+        {/* ================= LAPTOP/DESKTOP VIEWPORT LAYOUT (Large Screen Full-Screen Feature Views) ================= */}
+        <div className="hidden lg:block h-[calc(100vh-140px)] min-h-[580px] w-full">
           
-          {/* Collapsible Left Column: Access Sidebar configs */}
-          {isSidebarOpen && (
-            <section className="col-span-3 bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 flex flex-col justify-between space-y-6 animate-fadeIn">
-              {renderSidebarContents(false)}
-            </section>
+          {activeFeature === 'hero' && (
+            <div className="w-full h-full flex flex-col items-center justify-center space-y-8 animate-fadeIn max-w-4xl mx-auto text-center px-6">
+              <div className="space-y-3">
+                <span className="text-[10px] font-mono tracking-[0.3em] text-neutral-500 uppercase block font-bold">
+                  SECURITY PROTOCOL LEVEL 7
+                </span>
+                <h2 className="text-4xl sm:text-5xl font-black italic tracking-wide text-white leading-tight">
+                  Identify your role in the <span className="text-neutral-400">executive</span> ecosystem.
+                </h2>
+                <p className="text-xs text-neutral-500 max-w-xl mx-auto leading-relaxed">
+                  Select your clearance level below to load the operational telemetries and command centers for ArenaMind-AI.
+                </p>
+              </div>
+
+              {/* Role Card Grid */}
+              <div className="grid grid-cols-3 gap-6 w-full max-w-3xl pt-2">
+                {/* Fan Card */}
+                <button
+                  onClick={() => {
+                    setRole('fan');
+                    setActiveFeature('assistant');
+                  }}
+                  className="text-left p-5 transition-all duration-300 border bg-neutral-950/40 border-neutral-900 hover:border-neutral-700 rounded-xl space-y-4"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="p-2 bg-neutral-900 border border-neutral-850 rounded text-neutral-450">
+                      <Compass className="h-5 w-5" />
+                    </div>
+                    <span className="px-2 py-0.5 border border-neutral-850 bg-neutral-900 text-[8px] font-mono tracking-widest text-neutral-505 rounded-full font-bold uppercase">
+                      LVL 1
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-sm text-white">Spectator/Fan</h4>
+                    <p className="text-[10px] text-neutral-500 leading-normal">Access real-time match analytics and directions.</p>
+                  </div>
+                </button>
+
+                {/* Volunteer Card */}
+                <button
+                  onClick={() => {
+                    setRole('volunteer');
+                    setActiveFeature('assistant');
+                  }}
+                  className="text-left p-5 transition-all duration-300 border bg-neutral-950/40 border-neutral-900 hover:border-neutral-700 rounded-xl space-y-4"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="p-2 bg-neutral-900 border border-neutral-850 rounded text-neutral-450">
+                      <HeartHandshake className="h-5 w-5" />
+                    </div>
+                    <span className="px-2 py-0.5 border border-neutral-850 bg-neutral-900 text-[8px] font-mono tracking-widest text-neutral-550 rounded-full font-bold uppercase">
+                      LVL 2
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-sm text-white">Volunteer</h4>
+                    <p className="text-[10px] text-neutral-500 leading-normal">Coordinate field operations and visitor assistance.</p>
+                  </div>
+                </button>
+
+                {/* Staff Card */}
+                <button
+                  onClick={() => {
+                    setRole('staff');
+                    setActiveFeature('assistant');
+                  }}
+                  className="text-left p-5 transition-all duration-300 border bg-neutral-950/40 border-neutral-900 hover:border-neutral-700 rounded-xl space-y-4"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="p-2 bg-neutral-900 border border-neutral-850 rounded text-neutral-450">
+                      <Shield className="h-5 w-5" />
+                    </div>
+                    <span className="px-2 py-0.5 border border-neutral-850 bg-neutral-900 text-[8px] font-mono tracking-widest text-neutral-550 rounded-full font-bold uppercase">
+                      LVL 4
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-sm text-white">Operations/Staff</h4>
+                    <p className="text-[10px] text-neutral-500 leading-normal">Tactical command, security status, and incident alerts.</p>
+                  </div>
+                </button>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => setActiveFeature('assistant')}
+                  className="px-8 py-3.5 bg-gradient-to-r from-neutral-100 to-neutral-300 hover:from-white hover:to-neutral-200 text-black font-black uppercase tracking-[0.2em] text-xs transition-all duration-300 shadow-md rounded-full"
+                >
+                  INITIALIZE COMMAND CONSOLE
+                </button>
+              </div>
+            </div>
           )}
 
-          {/* Center Column: ChatAssistant (Dynamically adjusts width if sidebar collapsed) */}
-          <section className={`${isSidebarOpen ? 'col-span-5' : 'col-span-7'} h-full flex flex-col transition-all duration-300`}>
-            <ChatAssistant
-              role={role}
-              language={language}
-              accessibilityNeeds={accessibilityNeeds}
-              sessionId={sessionId}
-              setSessionId={setSessionId}
-              prefillQuery={prefillQuery}
-              clearPrefillQuery={() => setPrefillQuery('')}
-            />
-          </section>
+          {activeFeature === 'assistant' && (
+            <div className="w-full h-full flex flex-col justify-between animate-fadeIn">
+              <ChatAssistant
+                role={role}
+                language={language}
+                accessibilityNeeds={accessibilityNeeds}
+                sessionId={sessionId}
+                setSessionId={setSessionId}
+                prefillQuery={prefillQuery}
+                clearPrefillQuery={() => setPrefillQuery('')}
+              />
+            </div>
+          )}
 
-          {/* Right Column: Telemetry widgets & map */}
-          <section className={`${isSidebarOpen ? 'col-span-4' : 'col-span-5'} flex flex-col gap-5 overflow-y-auto pr-1 transition-all duration-300`}>
-            {renderStadiumMapWidget()}
-            {renderDashboardWidgets()}
-          </section>
+          {activeFeature === 'map' && (
+            <div className="w-full h-full grid grid-cols-12 gap-6 items-stretch animate-fadeIn">
+              {/* Map (Col-Span-7) */}
+              <div className="col-span-7 bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 flex flex-col justify-between">
+                {renderStadiumMapWidget()}
+              </div>
+
+              {/* Telemetry (Col-Span-5) */}
+              <div className="col-span-5 flex flex-col gap-5 overflow-y-auto pr-1">
+                {renderDashboardWidgets()}
+              </div>
+            </div>
+          )}
+
+          {activeFeature === 'configs' && (
+            <div className="w-full h-full grid grid-cols-3 gap-6 items-stretch animate-fadeIn">
+              {/* Column 1: Roles */}
+              <div className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 flex flex-col justify-between space-y-6">
+                <div className="space-y-4">
+                  <span className="text-[8px] font-mono tracking-widest text-neutral-500 uppercase block font-bold border-b border-neutral-900 pb-1.5">ROLE AUTHORIZATION</span>
+                  {/* Fan */}
+                  <button
+                    onClick={() => setRole('fan')}
+                    className={`w-full text-left p-3.5 transition-all duration-300 border flex justify-between items-start rounded-xl ${
+                      role === 'fan' ? 'bg-neutral-950 border-neutral-600 ring-1 ring-neutral-600' : 'bg-neutral-950/25 border-neutral-900 hover:border-neutral-850'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3 pr-2">
+                      <div className={`p-1.5 rounded border ${
+                        role === 'fan' ? 'bg-white text-black border-white' : 'bg-neutral-900 text-neutral-550 border-neutral-855'
+                      }`}>
+                        <Compass className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-xs text-white">Spectator/Fan</h4>
+                        <p className="text-[9px] text-neutral-500 mt-0.5 leading-snug">Level 1 operational clearance.</p>
+                      </div>
+                    </div>
+                    <span className="px-1.5 py-0.5 border border-neutral-800 bg-neutral-900 text-[7px] font-mono tracking-widest text-neutral-500 rounded-full font-bold uppercase mt-0.5 flex-shrink-0">
+                      LVL 1
+                    </span>
+                  </button>
+
+                  {/* Volunteer */}
+                  <button
+                    onClick={() => setRole('volunteer')}
+                    className={`w-full text-left p-3.5 transition-all duration-300 border flex justify-between items-start rounded-xl ${
+                      role === 'volunteer' ? 'bg-neutral-950 border-neutral-600 ring-1 ring-neutral-600' : 'bg-neutral-950/25 border-neutral-900 hover:border-neutral-850'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3 pr-2">
+                      <div className={`p-1.5 rounded border ${
+                        role === 'volunteer' ? 'bg-white text-black border-white' : 'bg-neutral-900 text-neutral-550 border-neutral-855'
+                      }`}>
+                        <HeartHandshake className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-xs text-white">Volunteer</h4>
+                        <p className="text-[9px] text-neutral-500 mt-0.5 leading-snug">Level 2 task administration.</p>
+                      </div>
+                    </div>
+                    <span className="px-1.5 py-0.5 border border-neutral-800 bg-neutral-900 text-[7px] font-mono tracking-widest text-neutral-500 rounded-full font-bold uppercase mt-0.5 flex-shrink-0">
+                      LVL 2
+                    </span>
+                  </button>
+
+                  {/* Staff */}
+                  <button
+                    onClick={() => setRole('staff')}
+                    className={`w-full text-left p-3.5 transition-all duration-300 border flex justify-between items-start rounded-xl ${
+                      role === 'staff' ? 'bg-neutral-950 border-neutral-600 ring-1 ring-neutral-600' : 'bg-neutral-950/25 border-neutral-900 hover:border-neutral-850'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3 pr-2">
+                      <div className={`p-1.5 rounded border ${
+                        role === 'staff' ? 'bg-white text-black border-white' : 'bg-neutral-900 text-neutral-550 border-neutral-855'
+                      }`}>
+                        <Shield className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-xs text-white">Operations/Staff</h4>
+                        <p className="text-[9px] text-neutral-500 mt-0.5 leading-snug">Level 4 full command.</p>
+                      </div>
+                    </div>
+                    <span className="px-1.5 py-0.5 border border-neutral-800 bg-neutral-900 text-[7px] font-mono tracking-widest text-neutral-500 rounded-full font-bold uppercase mt-0.5 flex-shrink-0">
+                      LVL 4
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Column 2: Language */}
+              <div className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 flex flex-col justify-between space-y-6">
+                <div className="space-y-4">
+                  <span className="text-[8px] font-mono tracking-widest text-neutral-500 uppercase block font-bold border-b border-neutral-900 pb-1.5">CONSOLE LANGUAGE</span>
+                  <div className="grid grid-cols-1 gap-3">
+                    {[['en', 'English Protocol'], ['es', 'Español Protocolo'], ['fr', 'Protocole Français']].map(([code, name]) => (
+                      <button
+                        key={code}
+                        onClick={() => setLanguage(code)}
+                        className={`py-3.5 px-4 border text-[10px] uppercase tracking-wider font-extrabold rounded-xl transition-all text-left ${
+                          language === code
+                            ? 'bg-white border-white text-black font-black'
+                            : 'bg-neutral-900/60 border-neutral-850 text-neutral-450 hover:text-white'
+                        }`}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: Accessibility */}
+              <div className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-5 flex flex-col justify-between space-y-6">
+                <div className="space-y-4">
+                  <span className="text-[8px] font-mono tracking-widest text-neutral-500 uppercase block font-bold border-b border-neutral-900 pb-1.5">ACCESSIBILITY PROFILE</span>
+                  <div className="space-y-4 p-4 bg-neutral-950 border border-neutral-900 rounded-xl">
+                    <label className="flex items-center gap-3 cursor-pointer text-xs text-neutral-350 hover:text-white transition-all">
+                      <input
+                        type="checkbox"
+                        checked={accessibilityNeeds.wheelchair}
+                        onChange={() => handleAccToggle('wheelchair')}
+                        className="w-4 h-4 rounded bg-neutral-900 border-neutral-800 text-white focus:ring-transparent focus:ring-0"
+                      />
+                      <span className="font-semibold uppercase tracking-wide">Wheelchair Seating (Section 112)</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer text-xs text-neutral-350 hover:text-white transition-all">
+                      <input
+                        type="checkbox"
+                        checked={accessibilityNeeds.stepFree}
+                        onChange={() => handleAccToggle('stepFree')}
+                        className="w-4 h-4 rounded bg-neutral-900 border-neutral-800 text-white focus:ring-transparent focus:ring-0"
+                      />
+                      <span className="font-semibold uppercase tracking-wide">Step-free Path (Elevators/Ramps)</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer text-xs text-neutral-350 hover:text-white transition-all">
+                      <input
+                        type="checkbox"
+                        checked={accessibilityNeeds.sensory}
+                        onChange={() => handleAccToggle('sensory')}
+                        className="w-4 h-4 rounded bg-neutral-900 border-neutral-800 text-white focus:ring-transparent focus:ring-0"
+                      />
+                      <span className="font-semibold uppercase tracking-wide">Sensory Room Guide (Section 224C)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setIsFeedbackOpen(true)}
+                  className="py-3 w-full bg-neutral-900 hover:bg-neutral-855 border border-neutral-855 text-neutral-455 hover:text-white text-[9px] font-black uppercase tracking-widest transition-all rounded-xl mt-4"
+                >
+                  Submit Console Feedback
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* ================= TABLET VIEWPORT LAYOUT (Medium Screen 2-Column Grid) ================= */}

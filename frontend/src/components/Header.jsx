@@ -2,7 +2,13 @@ import React from 'react';
 import { Menu, LogOut } from 'lucide-react';
 import { translations } from '../utils/translations';
 
-export default function Header({ language, onLogout, toggleSidebar }) {
+export default function Header({ 
+  language, 
+  onLogout, 
+  toggleSidebar, 
+  activeFeature, 
+  setActiveFeature 
+}) {
   const t = translations[language] || translations.en;
 
   return (
@@ -10,18 +16,58 @@ export default function Header({ language, onLogout, toggleSidebar }) {
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3">
           <Menu 
-            className="h-5 w-5 text-neutral-400 cursor-pointer hover:text-white transition-all" 
+            className="h-5 w-5 text-neutral-400 cursor-pointer hover:text-white transition-all lg:hidden" 
             onClick={toggleSidebar} 
           />
-          <h1 className="text-sm font-black tracking-[0.2em] text-white uppercase font-sans">
+          <h1 
+            className="text-sm font-black tracking-[0.2em] text-white uppercase font-sans cursor-pointer hover:text-neutral-200 transition-all select-none"
+            onClick={() => setActiveFeature && setActiveFeature('hero')}
+            title="Return to console overview"
+          >
             ArenaMind-AI
           </h1>
         </div>
         
-        {/* Dynamic subtitle matching designed screenshots and layout request */}
-        <span className="hidden md:inline-block text-[9px] font-mono tracking-widest text-neutral-500 uppercase border-l border-neutral-900 pl-6 mt-0.5">
-          Identify your role in the executive ecosystem.
-        </span>
+        {/* Subtitle hidden when navigation tabs are active on desktop */}
+        {activeFeature === 'hero' && (
+          <span className="hidden md:inline-block text-[9px] font-mono tracking-widest text-neutral-500 uppercase border-l border-neutral-900 pl-6 mt-0.5 select-none animate-fadeIn">
+            Identify your role in the executive ecosystem.
+          </span>
+        )}
+
+        {/* Laptop/Desktop Main Navigation Tabs */}
+        <div className="hidden lg:flex items-center gap-6 border-l border-neutral-900 pl-6">
+          <button 
+            onClick={() => setActiveFeature && setActiveFeature('assistant')} 
+            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 ${
+              activeFeature === 'assistant' 
+                ? 'text-white border-b border-white pb-0.5' 
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            Command Center Assistant
+          </button>
+          <button 
+            onClick={() => setActiveFeature && setActiveFeature('map')} 
+            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 ${
+              activeFeature === 'map' 
+                ? 'text-white border-b border-white pb-0.5' 
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            Live Zone Map
+          </button>
+          <button 
+            onClick={() => setActiveFeature && setActiveFeature('configs')} 
+            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 ${
+              activeFeature === 'configs' 
+                ? 'text-white border-b border-white pb-0.5' 
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            Ecosystem Configs
+          </button>
+        </div>
       </div>
       
       <div className="flex items-center gap-4">
