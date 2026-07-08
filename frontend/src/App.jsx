@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(true);
   const [role, setRole] = useState('fan');
   const [language, setLanguage] = useState('en');
   const [accessibilityNeeds, setAccessibilityNeeds] = useState({
