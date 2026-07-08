@@ -71,10 +71,14 @@ export async function sendChatMessage(sessionId, message, role, language, access
         const json = await res.json();
         msg = json.error || json.message || msg;
       } catch (e) {}
-      throw new Error(msg);
+      console.log('[CMD_DEBUG] sendChatMessage backend error:', res.status, msg);
+      const error = new Error(msg);
+      error.name = 'BackendError';
+      error.status = res.status;
+      throw error;
     }
     const json = await res.json();
-    console.log('[CMD_DEBUG] sendChatMessage resolved response:', json);
+    console.log('[CMD_DEBUG] sendChatMessage success payload:', json);
     return json;
   } catch (err) {
     console.error("[FINAL_DEBUG] sendChatMessage error:", err, "BASE_URL:", BASE_URL);

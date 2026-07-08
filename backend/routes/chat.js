@@ -364,49 +364,14 @@ router.post('/', async (req, res) => {
   const accNeeds = accessibilityNeeds || {};
   const isAccEnabled = accNeeds.wheelchair || accNeeds.stepFree || accNeeds.sensory || false;
 
+  // Track state components defensively to guarantee 200 + fallback on failures
+  let activeSessionId = sessionId || 'temp-session-' + Date.now();
+  let intent = 'general';
+  let assistantResponse = '';
+  let structuredData = null;
+
   try {
-    // 1. Get or Create Session
-    let activeSessionId = sessionId;
-    let sessionExists = false;
-    if (activeSessionId) {
-      try {
-        const existingSession = await dbGet('SELECT id FROM assistant_sessions WHERE id = ?', [activeSessionId]);
-        if (existingSession) {
-          sessionExists = true;
-        }
-      } catch (err) {
-        console.error('[CHAT_ROUTER] Failed to query existing session:', err.message);
-      }
-    }
-
-    if (!activeSessionId || !sessionExists) {
-      activeSessionId = generateUuid();
-      const stadium = await dbGet('SELECT id FROM stadiums LIMIT 1');
-      const stadiumId = stadium ? stadium.id : null;
-
-      await dbRun(`
-        INSERT INTO assistant_sessions (id, user_id, stadium_id, language)
-        VALUES (?, null, ?, ?)
-      `, [activeSessionId, stadiumId, lang]);
-    }
-
-    // 2. Save user message
-    const userMsgId = generateUuid();
-    await dbRun(`
-      INSERT INTO assistant_messages (id, session_id, sender, message, created_at)
-      VALUES (?, ?, 'user', ?, CURRENT_TIMESTAMP)
-    `, [userMsgId, activeSessionId, message]);
-
-    // 3. Gather Stadium Context from database
-    const stadiumRaw = await dbGet('SELECT * FROM stadiums LIMIT 1');
-    const stadium = stadiumRaw || { name: 'MetLife Stadium', city: 'East Rutherford', country: 'USA' };
-    const zones = await dbAll('SELECT * FROM zones') || [];
-    const pois = await dbAll('SELECT * FROM points_of_interest') || [];
-    const alerts = await dbAll('SELECT * FROM alerts WHERE status != "resolved"') || [];
-    const routes = await dbAll('SELECT * FROM routes') || [];
-
-    // Detect Intent
-    let intent = 'general';
+    // Detect Intent early
     const lowerMsg = message.toLowerCase();
     if (lowerMsg.includes('bathroom') || lowerMsg.includes('restroom') || lowerMsg.includes('toilet') || lowerMsg.includes('baño') || lowerMsg.includes('toilettes') || lowerMsg.includes('wc')) {
       intent = 'restroom';
@@ -422,10 +387,56 @@ router.post('/', async (req, res) => {
       intent = 'staff_info';
     }
 
-    let assistantResponse = '';
-    let structuredData = null;
+    // 1. Get or Create Session (Defensively catch DB connection exceptions)
+    try {
+      let sessionExists = false;
+      if (sessionId) {
+        const existingSession = await dbGet('SELECT id FROM assistant_sessions WHERE id = ?', [sessionId]);
+        if (existingSession) {
+          sessionExists = true;
+          activeSessionId = sessionId;
+        }
+      }
 
-    // Compile context
+      if (!sessionExists) {
+        activeSessionId = generateUuid();
+        const stadium = await dbGet('SELECT id FROM stadiums LIMIT 1');
+        const stadiumId = stadium ? stadium.id : null;
+
+        await dbRun(`
+          INSERT INTO assistant_sessions (id, user_id, stadium_id, language)
+          VALUES (?, null, ?, ?)
+        `, [activeSessionId, stadiumId, lang]);
+      }
+
+      // Save user message to database
+      const userMsgId = generateUuid();
+      await dbRun(`
+        INSERT INTO assistant_messages (id, session_id, sender, message, created_at)
+        VALUES (?, ?, 'user', ?, CURRENT_TIMESTAMP)
+      `, [userMsgId, activeSessionId, message]);
+    } catch (dbErr) {
+      console.warn('[CHAT_ROUTER] Non-fatal database session or log write error:', dbErr.message);
+    }
+
+    // 2. Gather Stadium Context (Use defaults on failure)
+    let stadium = { name: 'MetLife Stadium', city: 'East Rutherford', country: 'USA' };
+    let zones = [];
+    let pois = [];
+    let alerts = [];
+    let routes = [];
+
+    try {
+      const stadiumRaw = await dbGet('SELECT * FROM stadiums LIMIT 1');
+      if (stadiumRaw) stadium = stadiumRaw;
+      zones = await dbAll('SELECT * FROM zones') || [];
+      pois = await dbAll('SELECT * FROM points_of_interest') || [];
+      alerts = await dbAll('SELECT * FROM alerts WHERE status != "resolved"') || [];
+      routes = await dbAll('SELECT * FROM routes') || [];
+    } catch (dbErr) {
+      console.warn('[CHAT_ROUTER] Non-fatal context query error:', dbErr.message);
+    }
+
     const contextStr = `
 STADIUM DETAILS:
 - Name: ${stadium.name} in ${stadium.city}, ${stadium.country}
@@ -473,10 +484,14 @@ ${contextStr}
 User Query: "${message}"
 Assistant Response:`;
 
-    // 4. Try LLM Call (Gemini -> OpenAI)
-    assistantResponse = await callLLM(systemPrompt);
+    // 3. Try LLM Call (Gemini -> OpenAI)
+    try {
+      assistantResponse = await callLLM(systemPrompt);
+    } catch (llmErr) {
+      console.warn('[CHAT_ROUTER] Non-fatal LLM call failure, falling back to local engine:', llmErr.message);
+    }
 
-    // 5. Fallback logic if LLMs are not available or failed (Rules-Based Structured Fallback)
+    // 4. Fallback logic if LLMs are not available or failed (Rules-Based Structured Fallback)
     if (!assistantResponse) {
       const activeDict = structuredFallbacks[lang] || structuredFallbacks.en;
       structuredData = activeDict[intent] || activeDict.general;
@@ -489,12 +504,16 @@ Assistant Response:`;
         `_${structuredData.follow_up}_`;
     }
 
-    // 6. Save assistant message
-    const astMsgId = generateUuid();
-    await dbRun(`
-      INSERT INTO assistant_messages (id, session_id, sender, message, intent, created_at)
-      VALUES (?, ?, 'assistant', ?, ?, CURRENT_TIMESTAMP)
-    `, [astMsgId, activeSessionId, assistantResponse, intent]);
+    // 5. Save assistant message (Soft fail if DB connection fails)
+    try {
+      const astMsgId = generateUuid();
+      await dbRun(`
+        INSERT INTO assistant_messages (id, session_id, sender, message, intent, created_at)
+        VALUES (?, ?, 'assistant', ?, ?, CURRENT_TIMESTAMP)
+      `, [astMsgId, activeSessionId, assistantResponse, intent]);
+    } catch (dbErr) {
+      console.warn('[CHAT_ROUTER] Non-fatal assistant message save error:', dbErr.message);
+    }
 
     const responsePayload = {
       sessionId: activeSessionId,

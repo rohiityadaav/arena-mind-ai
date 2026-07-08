@@ -122,16 +122,25 @@ export default function ChatAssistant({
       const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
       console.error("[FINAL_DEBUG] sendChatMessage error:", err, "BASE_URL:", BASE_URL);
       console.error('[DEPLOY_DEBUG] Chat request failed:', err);
-      
+
       const errMsg = (err.message || '').toLowerCase();
+      const errName = err.name || '';
+      const status = err.status || null;
+
       const isNetworkError =
-        err.name === 'TypeError' ||
+        errName === 'TypeError' ||
         errMsg.includes('failed to fetch') ||
+        errMsg.includes('networkerror') ||
         errMsg.includes('network error') ||
         errMsg.includes('cors') ||
         errMsg.includes('load failed');
+
+      const isBackendError =
+        errName === 'BackendError' ||
+        (typeof status === 'number' && status >= 400 && status < 600);
+
       let errorMsgText = '';
-      
+
       if (isNetworkError) {
         if (language === 'es') {
           errorMsgText = 'El servidor de comando del estadio no está disponible temporalmente. Por favor, inténtelo de nuevo en un momento.';
@@ -140,13 +149,21 @@ export default function ChatAssistant({
         } else {
           errorMsgText = 'Stadium command server is temporarily unavailable. Please retry in a moment.';
         }
-      } else {
+      } else if (isBackendError) {
         if (language === 'es') {
           errorMsgText = `El asistente de comando encontró un error de procesamiento: ${err.message}. Los sistemas de guía locales siguen en línea.`;
         } else if (language === 'fr') {
           errorMsgText = `L'assistant de commande a rencontré une erreur de traitement: ${err.message}. Les systèmes locaux restent en ligne.`;
         } else {
           errorMsgText = `The command assistant encountered a processing error: ${err.message}. Local guidance systems remain online.`;
+        }
+      } else {
+        if (language === 'es') {
+          errorMsgText = `El asistente de comando encontró un error inesperado en el cliente: ${err.message}. Los sistemas de guía locales siguen en línea.`;
+        } else if (language === 'fr') {
+          errorMsgText = `L'assistant de commande a rencontré une erreur cliente inattendue: ${err.message}. Les systèmes locaux restent en ligne.`;
+        } else {
+          errorMsgText = `The command assistant encountered an unexpected client-side error: ${err.message}. Local guidance systems remain online.`;
         }
       }
 
