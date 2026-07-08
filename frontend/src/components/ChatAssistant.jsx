@@ -68,21 +68,25 @@ export default function ChatAssistant({
     } catch (err) {
       console.error('[DEPLOY_DEBUG] Chat request failed:', err);
       
-      const isLogicalError = err.message === 'chat_server_error';
+      const isNetworkError = err.name === 'TypeError' || err.message.toLowerCase().includes('fetch') || err.message.toLowerCase().includes('network') || err.message.toLowerCase().includes('failed');
       let errorMsgText = '';
       
-      if (language === 'es') {
-        errorMsgText = isLogicalError
-          ? 'El asistente de comando encontró un error de procesamiento. Los sistemas de guía locales siguen en línea.'
-          : 'Servidor temporalmente no disponible. Se perdió la conexión con el centro de mando del estadio.';
-      } else if (language === 'fr') {
-        errorMsgText = isLogicalError
-          ? "L'assistant de commande a rencontré une erreur de traitement. Les systèmes de guidage locaux sont toujours en ligne."
-          : "Serveur temporairement indisponible. Connexion avec le centre de commande du stade perdue.";
+      if (isNetworkError) {
+        if (language === 'es') {
+          errorMsgText = 'El servidor de comando del estadio no está disponible temporalmente. Por favor, inténtelo de nuevo en un momento.';
+        } else if (language === 'fr') {
+          errorMsgText = 'Le serveur de commande du stade est temporairement indisponible. Veuillez réessayer dans un instant.';
+        } else {
+          errorMsgText = 'Stadium command server is temporarily unavailable. Please retry in a moment.';
+        }
       } else {
-        errorMsgText = isLogicalError
-          ? 'The command assistant encountered a processing error. Local guidance systems are still online.'
-          : 'Server temporarily unavailable. Connection to stadium command hub lost.';
+        if (language === 'es') {
+          errorMsgText = `El asistente de comando encontró un error de procesamiento: ${err.message}. Los sistemas de guía locales siguen en línea.`;
+        } else if (language === 'fr') {
+          errorMsgText = `L'assistant de commande a rencontré une erreur de traitement: ${err.message}. Les systèmes locaux restent en ligne.`;
+        } else {
+          errorMsgText = `The command assistant encountered a processing error: ${err.message}. Local guidance systems remain online.`;
+        }
       }
 
       const errorMsg = { 
