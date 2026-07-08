@@ -123,7 +123,13 @@ export default function ChatAssistant({
       console.error("[FINAL_DEBUG] sendChatMessage error:", err, "BASE_URL:", BASE_URL);
       console.error('[DEPLOY_DEBUG] Chat request failed:', err);
       
-      const isNetworkError = err.name === 'TypeError' || err.message.toLowerCase().includes('fetch') || err.message.toLowerCase().includes('network') || err.message.toLowerCase().includes('failed');
+      const errMsg = err.message ? err.message.toLowerCase() : '';
+      const isNetworkError = 
+        err.name === 'TypeError' || 
+        errMsg.includes('failed to fetch') || 
+        errMsg.includes('network') || 
+        errMsg.includes('load failed') ||
+        errMsg.includes('cors');
       let errorMsgText = '';
       
       if (isNetworkError) {

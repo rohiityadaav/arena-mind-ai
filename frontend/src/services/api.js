@@ -45,7 +45,6 @@ export async function getAlerts() {
 
 export async function sendChatMessage(sessionId, message, role, language, accessibilityNeeds) {
   const url = `${BASE_URL}/api/chat`;
-  console.log('[DEPLOY_DEBUG] Posting chat message to:', url);
   
   // Support both single payload object argument and multiple arguments signature
   let payload = {};
@@ -55,12 +54,17 @@ export async function sendChatMessage(sessionId, message, role, language, access
     payload = { sessionId, message, role, language, accessibilityNeeds };
   }
 
+  console.log("[CMD_DEBUG] sendChatMessage URL:", url, "payload:", payload);
+
   try {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+    
+    console.log("[CMD_DEBUG] sendChatMessage status:", res.status);
+
     if (!res.ok) {
       let msg = 'chat_server_error';
       try {

@@ -340,6 +340,7 @@ const structuredFallbacks = {
 // POST send chat message
 router.post('/', async (req, res) => {
   const { sessionId, message, role, language, accessibilityNeeds } = req.body;
+  console.log("[CMD_DEBUG] /api/chat payload:", req.body);
 
   if (!message || typeof message !== 'string') {
     return res.status(400).json({ error: 'Message is required and must be a string' });
@@ -385,11 +386,12 @@ router.post('/', async (req, res) => {
     `, [userMsgId, activeSessionId, message]);
 
     // 3. Gather Stadium Context from database
-    const stadium = await dbGet('SELECT * FROM stadiums LIMIT 1');
-    const zones = await dbAll('SELECT * FROM zones');
-    const pois = await dbAll('SELECT * FROM points_of_interest');
-    const alerts = await dbAll('SELECT * FROM alerts WHERE status != "resolved"');
-    const routes = await dbAll('SELECT * FROM routes');
+    const stadiumRaw = await dbGet('SELECT * FROM stadiums LIMIT 1');
+    const stadium = stadiumRaw || { name: 'MetLife Stadium', city: 'East Rutherford', country: 'USA' };
+    const zones = await dbAll('SELECT * FROM zones') || [];
+    const pois = await dbAll('SELECT * FROM points_of_interest') || [];
+    const alerts = await dbAll('SELECT * FROM alerts WHERE status != "resolved"') || [];
+    const routes = await dbAll('SELECT * FROM routes') || [];
 
     // Detect Intent
     let intent = 'general';
@@ -482,12 +484,14 @@ Assistant Response:`;
       VALUES (?, ?, 'assistant', ?, ?, CURRENT_TIMESTAMP)
     `, [astMsgId, activeSessionId, assistantResponse, intent]);
 
-    res.json({
+    const responsePayload = {
       sessionId: activeSessionId,
       intent,
       message: assistantResponse,
       structuredData: structuredData
-    });
+    };
+    console.log("[CMD_DEBUG] /api/chat response:", responsePayload);
+    res.json(responsePayload);
   } catch (error) {
     console.error('Chat error:', error);
     res.status(500).json({ error: 'Failed to process chat message' });
