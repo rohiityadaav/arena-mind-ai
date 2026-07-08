@@ -9,6 +9,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Rating is required and must be between 1 and 5' });
   }
 
+  if (comment && comment.length > 1000) {
+    return res.status(400).json({ error: 'Comment exceeds maximum limit of 1000 characters' });
+  }
+
   try {
     const id = generateUuid();
     await dbRun(`

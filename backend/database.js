@@ -158,6 +158,14 @@ const initDb = async () => {
     );
   `);
 
+  // Create indexes on foreign keys for query efficiency
+  await dbRun('CREATE INDEX IF NOT EXISTS idx_zones_stadium_id ON zones(stadium_id);');
+  await dbRun('CREATE INDEX IF NOT EXISTS idx_pois_stadium_id ON points_of_interest(stadium_id);');
+  await dbRun('CREATE INDEX IF NOT EXISTS idx_pois_zone_id ON points_of_interest(zone_id);');
+  await dbRun('CREATE INDEX IF NOT EXISTS idx_routes_stadium_id ON routes(stadium_id);');
+  await dbRun('CREATE INDEX IF NOT EXISTS idx_alerts_stadium_id ON alerts(stadium_id);');
+  await dbRun('CREATE INDEX IF NOT EXISTS idx_alerts_zone_id ON alerts(zone_id);');
+
   console.log('Database tables verified/created successfully.');
 };
 

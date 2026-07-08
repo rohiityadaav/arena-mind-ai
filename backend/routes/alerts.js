@@ -25,6 +25,14 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Missing required alert fields' });
   }
 
+  if (!['low', 'medium', 'high', 'critical'].includes(severity)) {
+    return res.status(400).json({ error: 'Invalid alert severity level' });
+  }
+
+  if (!['congestion', 'incident', 'maintenance', 'hazard'].includes(alert_type)) {
+    return res.status(400).json({ error: 'Invalid alert type specified' });
+  }
+
   try {
     const id = generateUuid();
     await dbRun(`
