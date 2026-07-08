@@ -164,6 +164,83 @@ function runSanityCheck() {
     }
   }
 
+  // ================= SIMULATED UNIT TESTS FOR ACCESSIBILITY SCORE CALCULATION =================
+  console.log('\n==================================================');
+  console.log('Running Accessibility Score Unit Tests...');
+  console.log('==================================================\n');
+
+  function calculateAccessibilityScore(needs, activeAlerts) {
+    let score = 92;
+    if (needs.wheelchair) score += 4;
+    if (needs.stepFree) score += 4;
+    if (needs.sensory) score += 2;
+    
+    const activeElevatorOutages = activeAlerts.filter(
+      a => a.alert_type === 'maintenance' && 
+      (a.title.toLowerCase().includes('elevator') || a.description.toLowerCase().includes('elevator'))
+    );
+    score -= activeElevatorOutages.length * 15;
+    
+    const activeHazards = activeAlerts.filter(a => a.severity === 'critical' || a.severity === 'high');
+    score -= activeHazards.length * 10;
+    
+    return Math.max(0, Math.min(100, score));
+  }
+
+  const scoreTestCases = [
+    {
+      name: 'Default State (No custom needs, no outages)',
+      needs: { wheelchair: false, stepFree: false, sensory: false },
+      alerts: [],
+      expected: 92
+    },
+    {
+      name: 'Full Accessibility Needs Enabled',
+      needs: { wheelchair: true, stepFree: true, sensory: true },
+      alerts: [],
+      expected: 100 // 92 + 4 + 4 + 2 capped at 100
+    },
+    {
+      name: 'Elevator Outage Deduct',
+      needs: { wheelchair: true, stepFree: true, sensory: false },
+      alerts: [
+        { alert_type: 'maintenance', title: 'Elevator 4 Lobby offline', severity: 'medium' }
+      ],
+      expected: 85 // 92 + 4 + 4 - 15 = 85
+    },
+    {
+      name: 'Critical Hazard Deduct',
+      needs: { wheelchair: false, stepFree: false, sensory: false },
+      alerts: [
+        { alert_type: 'incident', title: 'Gate B congestion bottleneck', severity: 'critical' }
+      ],
+      expected: 82 // 92 - 10 = 82
+    },
+    {
+      name: 'Outages exceeds limits',
+      needs: { wheelchair: false, stepFree: false, sensory: false },
+      alerts: [
+        { alert_type: 'maintenance', title: 'Elevator lobby out of service', severity: 'medium' },
+        { alert_type: 'maintenance', title: 'Elevator 2 down', severity: 'medium' },
+        { alert_type: 'maintenance', title: 'Elevator 3 down', severity: 'medium' },
+        { alert_type: 'maintenance', title: 'Elevator 4 down', severity: 'medium' },
+        { alert_type: 'incident', title: 'Power outage Gate B', severity: 'critical' },
+        { alert_type: 'incident', title: 'Emergency Gate C', severity: 'high' }
+      ],
+      expected: 12
+    }
+  ];
+
+  for (const tc of scoreTestCases) {
+    const result = calculateAccessibilityScore(tc.needs, tc.alerts);
+    if (result === tc.expected) {
+      console.log(`✓ PASS: ${tc.name} calculated score is ${result}%`);
+    } else {
+      console.error(`✕ FAIL: ${tc.name} calculated score is ${result}%, expected ${tc.expected}%`);
+      passed = false;
+    }
+  }
+
   console.log('\n==================================================');
   if (passed) {
     console.log('ALL FRONTEND SANITY AND UNIT CHECKS PASSED.');
