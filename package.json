@@ -7,6 +7,8 @@
     "install:backend": "npm install --prefix backend",
     "install:frontend": "npm install --prefix frontend",
     "start": "node start-dev.js",
-    "test:smoke": "node scripts/test-smoke.js"
+    "test:smoke": "node scripts/test-smoke.js",
+    "test:frontend": "node scripts/test-frontend-sanity.js",
+    "test": "npm run test:frontend && npm run test:smoke"
   }
 }

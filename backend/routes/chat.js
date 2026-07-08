@@ -341,12 +341,25 @@ const structuredFallbacks = {
 router.post('/', async (req, res) => {
   const { sessionId, message, role, language, accessibilityNeeds } = req.body;
 
-  if (!message) {
-    return res.status(400).json({ error: 'Message is required' });
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Message is required and must be a string' });
+  }
+
+  if (message.length > 1000) {
+    return res.status(400).json({ error: 'Message is too long. Limit is 1000 characters.' });
   }
 
   const userRole = role || 'fan';
   const lang = language || 'en';
+
+  if (!['fan', 'volunteer', 'staff'].includes(userRole)) {
+    return res.status(400).json({ error: 'Invalid user role specified' });
+  }
+
+  if (!['en', 'es', 'fr'].includes(lang)) {
+    return res.status(400).json({ error: 'Unsupported locale specified' });
+  }
+
   const accNeeds = accessibilityNeeds || {};
   const isAccEnabled = accNeeds.wheelchair || accNeeds.stepFree || accNeeds.sensory || false;
 
