@@ -66,15 +66,29 @@ export default function ChatAssistant({
       };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (err) {
-      console.error(err);
+      console.error('[DEPLOY_DEBUG] Chat request failed:', err);
+      
+      const isLogicalError = err.message === 'chat_server_error';
+      let errorMsgText = '';
+      
+      if (language === 'es') {
+        errorMsgText = isLogicalError
+          ? 'El asistente de comando encontró un error de procesamiento. Los sistemas de guía locales siguen en línea.'
+          : 'Servidor temporalmente no disponible. Se perdió la conexión con el centro de mando del estadio.';
+      } else if (language === 'fr') {
+        errorMsgText = isLogicalError
+          ? "L'assistant de commande a rencontré une erreur de traitement. Les systèmes de guidage locaux sont toujours en ligne."
+          : "Serveur temporairement indisponible. Connexion avec le centre de commande du stade perdue.";
+      } else {
+        errorMsgText = isLogicalError
+          ? 'The command assistant encountered a processing error. Local guidance systems are still online.'
+          : 'Server temporarily unavailable. Connection to stadium command hub lost.';
+      }
+
       const errorMsg = { 
         id: Math.random().toString(), 
         sender: 'assistant', 
-        message: language === 'es' 
-          ? 'Lo siento, no pude contactar al servidor. Por favor, inténtelo de nuevo.' 
-          : language === 'fr'
-            ? 'Désolé, impossible de contacter le serveur. Veuillez réessayer.'
-            : 'Sorry, I had trouble reaching the command server. Please try again.' 
+        message: errorMsgText
       };
       setMessages(prev => [...prev, errorMsg]);
     } finally {

@@ -12,38 +12,34 @@ const chatRouter = require('./routes/chat');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// CORS
 app.use(cors({
-  origin: '*',
+  origin: '*', // allow Vercel frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.options('*', cors()); // Enable preflight handling globally
+app.options('*', cors()); // preflight
 
+// JSON body parsing
 app.use(express.json());
 
-// Request logger for debugging deployment CORS / 404 issues
+// Logging middleware before routes
 app.use((req, res, next) => {
-  console.log(`[DEPLOY_DEBUG] Incoming: ${req.method} ${req.originalUrl} | Origin: ${req.headers.origin || 'No-Origin'}`);
+  console.log('[DEPLOY_DEBUG] Incoming request:', req.method, req.url);
   next();
 });
 
-// Routes
-console.log('[DEPLOY_DEBUG] Mounting Express API routes...');
-app.use('/api/stadium', stadiumRouter);
-console.log('[DEPLOY_DEBUG] Mounted: /api/stadium');
-app.use('/api/alerts', alertsRouter);
-console.log('[DEPLOY_DEBUG] Mounted: /api/alerts');
-app.use('/api/feedback', feedbackRouter);
-console.log('[DEPLOY_DEBUG] Mounted: /api/feedback');
-app.use('/api/chat', chatRouter);
-console.log('[DEPLOY_DEBUG] Mounted: /api/chat');
-
-// Basic health check
+// Health check
 app.get('/api/health', (req, res) => {
-  console.log('[DEPLOY_DEBUG] /api/health check executed.');
   res.json({ status: 'ok' });
 });
+
+// API routes
+console.log('[DEPLOY_DEBUG] Mounting /api/stadium, /api/alerts, /api/chat routes...');
+app.use('/api/stadium', stadiumRouter);
+app.use('/api/alerts', alertsRouter);
+app.use('/api/feedback', feedbackRouter);
+app.use('/api/chat', chatRouter);
 
 // Serve frontend in production (if build folder exists)
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
@@ -65,12 +61,10 @@ const startServer = async () => {
   try {
     await initDb();
     app.listen(PORT, () => {
-      console.log(`=========================================`);
-      console.log(`ArenaMind-AI Backend listening on port ${PORT}`);
-      console.log(`=========================================`);
+      console.log('[DEPLOY_DEBUG] Server running on port', PORT);
     });
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error('[DEPLOY_DEBUG] Failed to start server:', err);
     process.exit(1);
   }
 };
