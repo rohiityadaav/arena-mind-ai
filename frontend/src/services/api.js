@@ -73,7 +73,9 @@ export async function sendChatMessage(sessionId, message, role, language, access
       } catch (e) {}
       throw new Error(msg);
     }
-    return await res.json();
+    const json = await res.json();
+    console.log('[CMD_DEBUG] sendChatMessage resolved response:', json);
+    return json;
   } catch (err) {
     console.error("[FINAL_DEBUG] sendChatMessage error:", err, "BASE_URL:", BASE_URL);
     throw err;
