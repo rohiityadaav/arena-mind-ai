@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { translations } from '../utils/translations';
 import { Users, ShieldAlert, Award, Footprints } from 'lucide-react';
 
-export default function StadiumMap({ zones = [], pois = [], alerts = [], language, onAskAboutZone }) {
+export default function StadiumMap({ zones = [], pois = [], alerts = [], language, onAskAboutZone, safetyLens = false }) {
   const [selectedZone, setSelectedZone] = useState(null);
   const t = translations[language] || translations.en;
 
@@ -199,6 +199,43 @@ export default function StadiumMap({ zones = [], pois = [], alerts = [], languag
             );
           })()}
           <text x="73" y="203" textAnchor="middle" className="fill-emerald-500 font-bold text-[8px] pointer-events-none">GATE D ♿</text>
+
+          {/* Safety Lens Overlays */}
+          {safetyLens && (
+            <g className="pointer-events-none animate-fadeIn">
+              {/* Emergency Exit Route: Green dotted paths from Pitch to Gate C and Gate D */}
+              <path d="M 200 200 L 200 295" fill="none" stroke="#10B981" strokeWidth="2.5" strokeDasharray="4 4" className="animate-pulse" />
+              <path d="M 200 200 L 105 200" fill="none" stroke="#10B981" strokeWidth="2.5" strokeDasharray="4 4" className="animate-pulse" />
+              
+              {/* First Aid Highlight near Gate A */}
+              <circle cx="200" cy="115" r="5" fill="#10B981" className="animate-pulse" />
+              <text x="200" y="128" textAnchor="middle" className="fill-emerald-400 font-extrabold text-[6px] tracking-wider uppercase font-mono">FIRST AID</text>
+
+              {/* Congested Alert Warnings */}
+              {zones.map(z => {
+                const zoneAlerts = getZoneAlerts(z.id);
+                if (z.crowd_level >= 80 || zoneAlerts.some(a => a.severity === 'critical' || a.severity === 'high')) {
+                  let x = 200, y = 200;
+                  if (z.name.includes('Gate A')) { x = 200; y = 92; }
+                  else if (z.name.includes('Gate B')) { x = 308; y = 200; }
+                  else if (z.name.includes('Gate C')) { x = 200; y = 308; }
+                  else if (z.name.includes('Gate D')) { x = 92; y = 200; }
+                  else if (z.name.includes('Lot E/F')) { x = 315; y = 40; }
+                  else if (z.name.includes('Plaza')) { x = 140; y = 140; }
+                  else if (z.name.includes('Mid')) { x = 160; y = 160; }
+                  else if (z.name.includes('Upper')) { x = 180; y = 180; }
+
+                  return (
+                    <g key={z.id} className="animate-pulse">
+                      <circle cx={x} cy={y} r="10" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="1" />
+                      <path d={`M ${x} ${y-4} L ${x-3} ${y+3} L ${x+3} ${y+3} Z`} fill="#EF4444" />
+                    </g>
+                  );
+                }
+                return null;
+              })}
+            </g>
+          )}
         </svg>
       </div>
 

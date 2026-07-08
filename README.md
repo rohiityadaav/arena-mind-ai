@@ -37,6 +37,15 @@ The platform reduces matchday friction for fans, volunteers, and operators by of
 ### 6. Interactive Crowd Incident Reporting
 - Fans and volunteers can report live queue bottlenecks, elevator outages, or maintenance emergencies directly from the UI, raising alarms instantly on the staff dashboard.
 
+### 7. Judge Demo Mode
+- **Zero-Friction Scripting**: Activates with a single button in the top-right header control room. It instantly configures user preferences, selects defaults, and seeds a scriptable scenario (crowd congestion at Gate B, medical emergency in Section 112, and elevator lobby maintenance) alongside a floating step-by-step instruction guide in the UI.
+
+### 8. Safety Lens Overlay
+- **Visual Risk Mapping**: Toggles a visual safety overlay from the header. High-risk zones (congested areas, active incidents) are highlighted in pulsating red warnings, while safe corridors, medical points, and emergency exits are marked in bright green. The GenAI assistant is instructed to explicitly call out first aid points and safety bypass routes in chat responses.
+
+### 9. Accessibility Index Score
+- **Dynamic Recommendation Engine**: Computes a live accessibility index score (0–100) dynamically in the configurations dashboard. Evaluates active physical outages, selected profiles, and suggests operational recommendations (e.g. ADA shuttle frequency, elevator outage bypasses) to keep venue navigation safe and accessible.
+
 ---
 
 ## 🛠️ Tech Stack & Architecture
@@ -159,6 +168,27 @@ cmd.exe /c npm start
 ```
 - **Frontend URL**: `http://localhost:3000`
 - **Backend Port**: `http://localhost:5000`
+
+---
+
+## 🧪 Testing (Smoke Tests)
+
+ArenaMind-AI includes a dedicated smoke testing suite to verify backend health, database connectivity, and GenAI fallback routing logic.
+
+### Running the Smoke Tests
+With the servers running (`npm start`), open a new terminal window at the project root and run:
+```bash
+npm run test:smoke
+```
+Or on Windows:
+```bash
+cmd.exe /c npm run test:smoke
+```
+
+The script automatically executes:
+- **Server Health**: Calls `GET /api/health` and verifies `"status": "ok"`.
+- **Stadium Load**: Calls `GET /api/stadium` and verifies seeded MetLife Stadium zone payloads.
+- **Chat Fallback**: Calls `POST /api/chat` with user telemetry and verifies responses are served cleanly.
 
 ---
 

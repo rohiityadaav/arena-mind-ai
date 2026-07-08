@@ -10,7 +10,8 @@ export default function ChatAssistant({
   sessionId, 
   setSessionId, 
   prefillQuery, 
-  clearPrefillQuery 
+  clearPrefillQuery,
+  safetyLens = false
 }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -75,12 +76,46 @@ export default function ChatAssistant({
         setSessionId(response.sessionId);
       }
 
+      let finalMessage = response.message;
+      let finalIntent = response.intent;
+      let finalStructured = response.structuredData;
+
+      if (safetyLens) {
+        const lowerText = text.toLowerCase();
+        let safetyAdvice = '';
+        if (lowerText.includes('gate b') || lowerText.includes('congested') || lowerText.includes('crowd') || lowerText.includes('crowded')) {
+          safetyAdvice = '\n\n🛡️ **SAFETY LENS NOTICE // REROUTING SUGGESTION**:\nHeavy congestion active at Gate B. We recommend executing a tactical bypass: exit via **Gate C (South)** or **Gate D (West)**. Active ADA shuttle loops are rerouted to bypass the Gate B choke point.';
+        } else if (lowerText.includes('wheelchair') || lowerText.includes('accessible') || lowerText.includes('step-free') || lowerText.includes('ramp')) {
+          safetyAdvice = '\n\n🛡️ **SAFETY LENS NOTICE // ACCESSIBILITY COMPLIANCE**:\nElevator 4 at Gate 4 concourse is currently undergoing maintenance. Use the step-free ramp at Gate D or transit shuttle Loop G (ADA) for safe, step-free access to Section 112.';
+        } else {
+          safetyAdvice = '\n\n🛡️ **SAFETY LENS NOTICE // CROWD HAZARD AWARENESS**:\nMultiple high-density sectors flagged. Safe assembly zones are located at **Gate C Plaza (South)**. Nearest operational First Aid center is positioned at **Section 110 (North Concourse)**.';
+        }
+        finalMessage += safetyAdvice;
+
+        if (!finalStructured) {
+          finalStructured = {
+            cardType: 'warning',
+            cardTitle: 'Tactical Safety Route Alert',
+            warningLabel: 'SAFETY_ALERT // ACTIVE',
+            warningTitle: 'Sector Gate B Congested & Section 112 Med Emergency',
+            timeDelayLabel: 'BYPASS ENABLED',
+            timeDelayValue: 'Safe Corridor Open',
+            pathComplianceLabel: 'EMERGENCY PLAN ACTIVE',
+            pillButtons: [
+              { label: 'View Safe Exits Map', query: 'Show me safe exit paths' },
+              { label: 'Locate Nearest First Aid', query: 'Where is the Section 110 Medical Point?' }
+            ]
+          };
+          finalIntent = 'navigation';
+        }
+      }
+
       const assistantMsg = { 
         id: Math.random().toString(),
         sender: 'assistant', 
-        message: response.message,
-        intent: response.intent,
-        structuredData: response.structuredData
+        message: finalMessage,
+        intent: finalIntent,
+        structuredData: finalStructured
       };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (err) {

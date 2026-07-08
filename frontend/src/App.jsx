@@ -61,6 +61,90 @@ export default function App() {
 
   const activeAlerts = alerts.filter(a => a.status !== 'resolved');
 
+  // Safety Lens & Judge Demo states
+  const [safetyLens, setSafetyLens] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [savedDemoState, setSavedDemoState] = useState(null);
+
+  const calculateAccessibilityScore = () => {
+    let score = 92;
+    const activeCriticalAlerts = activeAlerts.filter(a => a.severity === 'critical').length;
+    const activeWarningAlerts = activeAlerts.filter(a => a.severity === 'high' || a.severity === 'medium').length;
+    
+    score -= activeCriticalAlerts * 12;
+    score -= activeWarningAlerts * 6;
+    
+    if (accessibilityNeeds.wheelchair) score += 3;
+    if (accessibilityNeeds.stepFree) score += 3;
+    if (accessibilityNeeds.sensory) score += 2;
+    
+    return Math.max(10, Math.min(score, 100));
+  };
+
+  const toggleDemoMode = () => {
+    if (!isDemoMode) {
+      setSavedDemoState({
+        role,
+        language,
+        accessibilityNeeds,
+        accessibilityEnabled,
+        alerts,
+        activeFeature
+      });
+
+      setRole('fan');
+      setLanguage('en');
+      setAccessibilityNeeds({ wheelchair: true, stepFree: true, sensory: false });
+      setAccessibilityEnabled(true);
+      setActiveFeature('assistant');
+      setAlerts([
+        {
+          id: 'demo-alert-1',
+          stadium_id: 1,
+          zone_id: 'gate-b',
+          alert_type: 'congestion',
+          severity: 'high',
+          status: 'active',
+          title: 'Gate B Crowd Congestion',
+          description: 'Heavy congestion at Gate B. Queue wait times exceeding 45 minutes.'
+        },
+        {
+          id: 'demo-alert-2',
+          stadium_id: 1,
+          zone_id: 'section-112',
+          alert_type: 'incident',
+          severity: 'critical',
+          status: 'active',
+          title: 'Section 112 Medical Emergency',
+          description: 'Medical team dispatched to Section 112. Please clear transit corridors.'
+        },
+        {
+          id: 'demo-alert-3',
+          stadium_id: 1,
+          zone_id: 'gate-4',
+          alert_type: 'maintenance',
+          severity: 'medium',
+          status: 'active',
+          title: 'Elevator Lobby Maintenance',
+          description: 'Elevator 4 out of service for inspection. Use Elevator 3 for step-free access.'
+        }
+      ]);
+      setIsDemoMode(true);
+    } else {
+      if (savedDemoState) {
+        setRole(savedDemoState.role);
+        setLanguage(savedDemoState.language);
+        setAccessibilityNeeds(savedDemoState.accessibilityNeeds);
+        setAccessibilityEnabled(savedDemoState.accessibilityEnabled);
+        setAlerts(savedDemoState.alerts);
+        setActiveFeature(savedDemoState.activeFeature);
+      } else {
+        refreshAlerts();
+      }
+      setIsDemoMode(false);
+    }
+  };
+
   const t = translations[language] || translations.en;
 
   // Load Stadium & Alerts Data
@@ -761,6 +845,7 @@ export default function App() {
             alerts={alerts}
             language={language}
             onAskAboutZone={handleAskAboutZone}
+            safetyLens={safetyLens}
           />
         </div>
       </div>
@@ -801,6 +886,10 @@ export default function App() {
         toggleSidebar={toggleSidebar} 
         activeFeature={activeFeature}
         setActiveFeature={setActiveFeature}
+        safetyLens={safetyLens}
+        setSafetyLens={setSafetyLens}
+        isDemoMode={isDemoMode}
+        toggleDemoMode={toggleDemoMode}
       />
 
       {/* Slide-out Sidebar Drawer Overlay (for Mobile & Tablet viewports) */}
@@ -942,6 +1031,7 @@ export default function App() {
                 setSessionId={setSessionId}
                 prefillQuery={prefillQuery}
                 clearPrefillQuery={() => setPrefillQuery('')}
+                safetyLens={safetyLens}
               />
             </div>
           )}
@@ -1096,6 +1186,32 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Accessibility Score panel */}
+                <div className="p-4 bg-neutral-950 border border-neutral-900 rounded-xl space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[8px] font-mono tracking-widest text-neutral-505 uppercase font-bold">Accessibility Index</span>
+                    <span className="text-xs font-black text-emerald-400">{calculateAccessibilityScore()}%</span>
+                  </div>
+                  <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-emerald-500 h-full transition-all duration-500" 
+                      style={{ width: `${calculateAccessibilityScore()}%` }}
+                    ></div>
+                  </div>
+                  <div className="space-y-1.5 pt-2 border-t border-neutral-900/60">
+                    <span className="text-[7px] font-mono tracking-widest text-neutral-500 uppercase block font-bold">RECOM PROTOCOLS</span>
+                    <ul className="text-[9px] text-neutral-405 space-y-1 list-disc pl-3 font-semibold">
+                      {calculateAccessibilityScore() < 90 && (
+                        <li>Enable Wheelchair Seating and Step-free Path filters to optimize routes.</li>
+                      )}
+                      {activeAlerts.some(a => a.zone_id === 'gate-4') && (
+                        <li>Elevator lobby maintenance active: detour via Gate D step-free corridors.</li>
+                      )}
+                      <li>Keep ADA shuttle Loops (currently G) synchronized with train arrival vectors.</li>
+                    </ul>
+                  </div>
+                </div>
+
                 <button 
                   onClick={() => setIsFeedbackOpen(true)}
                   className="py-3 w-full bg-neutral-900 hover:bg-neutral-855 border border-neutral-855 text-neutral-455 hover:text-white text-[9px] font-black uppercase tracking-widest transition-all rounded-xl mt-4"
@@ -1121,6 +1237,7 @@ export default function App() {
               setSessionId={setSessionId}
               prefillQuery={prefillQuery}
               clearPrefillQuery={() => setPrefillQuery('')}
+              safetyLens={safetyLens}
             />
           </section>
 
@@ -1152,6 +1269,7 @@ export default function App() {
                 setSessionId={setSessionId}
                 prefillQuery={prefillQuery}
                 clearPrefillQuery={() => setPrefillQuery('')}
+                safetyLens={safetyLens}
               />
             </div>
           )}
@@ -1228,6 +1346,47 @@ export default function App() {
         sessionId={sessionId}
         language={language}
       />
+
+      {/* Floating Judge Demo Script Panel */}
+      {isDemoMode && (
+        <div className="fixed bottom-6 right-6 z-[100] w-80 bg-neutral-950 border border-cyan-900/60 rounded-xl p-4 shadow-2xl animate-slideIn">
+          <div className="flex justify-between items-center border-b border-neutral-900 pb-2 mb-2">
+            <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-400 font-black flex items-center gap-1.5 uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+              Judge Demo Script
+            </span>
+            <button 
+              onClick={() => toggleDemoMode()} 
+              className="text-[9px] font-mono text-neutral-500 hover:text-white uppercase"
+            >
+              ✕ Exit
+            </button>
+          </div>
+          <div className="text-[10px] text-neutral-400 space-y-3 leading-relaxed">
+            <p className="text-[9px] font-mono text-neutral-500 uppercase">Follow these steps to evaluate the stack:</p>
+            
+            <div className="space-y-1">
+              <span className="font-extrabold text-white block">1. Fan Safe Routing:</span>
+              <p>Type in the assistant box: *&quot;How do I reach the Premium Box avoiding the congested Gate B?&quot;* to verify dynamic bypass logic.</p>
+            </div>
+            
+            <div className="space-y-1">
+              <span className="font-extrabold text-white block">2. Safety Lens Overlay:</span>
+              <p>Toggle **Safety Lens ON** in the header. Inspect the stadium map to view red warning grids on Gate B and glowing green exit corridors.</p>
+            </div>
+
+            <div className="space-y-1">
+              <span className="font-extrabold text-white block">3. Tactical Alert Command:</span>
+              <p>Go to **Ecosystem Configs** tab, authorize as **Operations Staff**, and publish or resolve alerts on the tactical board.</p>
+            </div>
+
+            <div className="space-y-1">
+              <span className="font-extrabold text-white block">4. Accessibility Score:</span>
+              <p>Check the configs tab. Toggle wheelchair access off/on to see the **Accessibility Index** and recommendation engine adjust live.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
