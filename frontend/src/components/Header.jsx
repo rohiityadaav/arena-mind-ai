@@ -39,7 +39,7 @@ export default function Header({
         <div className="hidden lg:flex items-center gap-6 border-l border-neutral-900 pl-6">
           <button 
             onClick={() => setActiveFeature && setActiveFeature('assistant')} 
-            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 ${
+            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 font-bold ${
               activeFeature === 'assistant' 
                 ? 'text-white border-b border-white pb-0.5' 
                 : 'text-neutral-500 hover:text-neutral-300'
@@ -49,7 +49,7 @@ export default function Header({
           </button>
           <button 
             onClick={() => setActiveFeature && setActiveFeature('map')} 
-            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 ${
+            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 font-bold ${
               activeFeature === 'map' 
                 ? 'text-white border-b border-white pb-0.5' 
                 : 'text-neutral-500 hover:text-neutral-300'
@@ -59,7 +59,7 @@ export default function Header({
           </button>
           <button 
             onClick={() => setActiveFeature && setActiveFeature('configs')} 
-            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 ${
+            className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 font-bold ${
               activeFeature === 'configs' 
                 ? 'text-white border-b border-white pb-0.5' 
                 : 'text-neutral-500 hover:text-neutral-300'

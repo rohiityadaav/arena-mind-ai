@@ -843,8 +843,9 @@ export default function App() {
                 <span className="text-[10px] font-mono tracking-[0.3em] text-neutral-500 uppercase block font-bold">
                   SECURITY PROTOCOL LEVEL 7
                 </span>
-                <h2 className="text-4xl sm:text-5xl font-black italic tracking-wide text-white leading-tight">
-                  Identify your role in the <span className="text-neutral-400">executive</span> ecosystem.
+                <h2 className="text-4xl sm:text-5xl tracking-wide text-white leading-tight font-sans">
+                  <span className="font-black italic block sm:inline">Identify your role</span>{' '}
+                  <span className="font-light text-neutral-500 block sm:inline">in the executive ecosystem.</span>
                 </h2>
                 <p className="text-xs text-neutral-500 max-w-xl mx-auto leading-relaxed">
                   Select your clearance level below to load the operational telemetries and command centers for ArenaMind-AI.
