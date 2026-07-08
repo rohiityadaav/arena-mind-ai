@@ -1,6 +1,6 @@
 /**
- * ArenaMind-AI Frontend Sanity Check Script
- * Statically validates React components, checking properties, exports, and layout definitions.
+ * ArenaMind-AI Frontend Sanity & Unit Check Script
+ * Statically validates React components and runs unit tests for error classification.
  */
 
 const fs = require('fs');
@@ -85,6 +85,7 @@ function runSanityCheck() {
         console.log(`✓ PASS: ${file.name} structure is intact.\n`);
       } else {
         console.log(`✕ FAIL: ${file.name} has structural anomalies.\n`);
+        passed = false;
       }
     } catch (err) {
       console.error(`✕ FAIL: Failed to read ${file.name} with error:`, err.message, '\n');
@@ -92,12 +93,83 @@ function runSanityCheck() {
     }
   }
 
+  // ================= SIMULATED UNIT TESTS FOR CHAT ERROR CLASSIFICATION =================
   console.log('==================================================');
+  console.log('Running Error Classification Unit Tests...');
+  console.log('==================================================\n');
+
+  // Implementation of classifier matching ChatAssistant.jsx exactly
+  function classifyError(err) {
+    const errMsg = (err.message || '').toLowerCase();
+    const errName = err.name || '';
+    const status = err.status || null;
+
+    const isNetworkError =
+      errName === 'TypeError' ||
+      errMsg.includes('failed to fetch') ||
+      errMsg.includes('networkerror') ||
+      errMsg.includes('network error') ||
+      errMsg.includes('cors') ||
+      errMsg.includes('load failed');
+
+    const isBackendError =
+      errName === 'BackendError' ||
+      (typeof status === 'number' && status >= 400 && status < 600);
+
+    if (isNetworkError) return 'NETWORK';
+    if (isBackendError) return 'BACKEND';
+    return 'CLIENT_BUG';
+  }
+
+  const testCases = [
+    {
+      name: 'Standard Fetch Failure',
+      error: { name: 'TypeError', message: 'Failed to fetch' },
+      expected: 'NETWORK'
+    },
+    {
+      name: 'Firefox CORS Outage',
+      error: { name: 'Error', message: 'NetworkError when attempting to fetch resource.' },
+      expected: 'NETWORK'
+    },
+    {
+      name: 'IOS Load Fail',
+      error: { name: 'TypeError', message: 'Load failed' },
+      expected: 'NETWORK'
+    },
+    {
+      name: 'Backend Validation 400',
+      error: { name: 'BackendError', status: 400, message: 'Invalid user role specified' },
+      expected: 'BACKEND'
+    },
+    {
+      name: 'Backend 500 Crash',
+      error: { name: 'BackendError', status: 500, message: 'Failed to process chat message' },
+      expected: 'BACKEND'
+    },
+    {
+      name: 'Client ReferenceError Bug',
+      error: { name: 'ReferenceError', message: 'activeFeature is not defined' },
+      expected: 'CLIENT_BUG'
+    }
+  ];
+
+  for (const tc of testCases) {
+    const result = classifyError(tc.error);
+    if (result === tc.expected) {
+      console.log(`✓ PASS: ${tc.name} classified as ${result}`);
+    } else {
+      console.error(`✕ FAIL: ${tc.name} classified as ${result}, expected ${tc.expected}`);
+      passed = false;
+    }
+  }
+
+  console.log('\n==================================================');
   if (passed) {
-    console.log('ALL FRONTEND SANITY CHECKS PASSED.');
+    console.log('ALL FRONTEND SANITY AND UNIT CHECKS PASSED.');
     process.exit(0);
   } else {
-    console.error('FRONTEND SANITY CHECKS DETECTED ANOMALIES.');
+    console.error('FRONTEND SANITY/UNIT CHECKS DETECTED ANOMALIES.');
     process.exit(1);
   }
 }

@@ -3,6 +3,24 @@ import { translations } from '../utils/translations';
 import { api } from '../services/api';
 import { Send, Star, User, Compass, ShieldAlert, Sparkles, Paperclip, ArrowUp } from 'lucide-react';
 
+// Helper to format localized chat error messages based on category
+function getChatErrorMessage(err, language, isNetworkError, isBackendError) {
+  const msg = err.message || '';
+  if (isNetworkError) {
+    if (language === 'es') return 'El servidor de comando del estadio no está disponible temporalmente. Por favor, inténtelo de nuevo en un momento.';
+    if (language === 'fr') return 'Le serveur de commande du stade est temporairement indisponible. Veuillez réessayer dans un instant.';
+    return 'Stadium command server is temporarily unavailable. Please retry in a moment.';
+  }
+  if (isBackendError) {
+    if (language === 'es') return `El asistente de comando encontró un error de procesamiento: ${msg}. Los sistemas de guía locales siguen en línea.`;
+    if (language === 'fr') return `L'assistant de commande a rencontré une erreur de traitement: ${msg}. Les systèmes locaux restent en ligne.`;
+    return `The command assistant encountered a processing error: ${msg}. Local guidance systems remain online.`;
+  }
+  if (language === 'es') return `El asistente de comando encontró un error inesperado en el cliente: ${msg}. Los sistemas de guía locales siguen en línea.`;
+  if (language === 'fr') return `L'assistant de commande a rencontré une erreur cliente inattendue: ${msg}. Les systèmes locaux restent en ligne.`;
+  return `The command assistant encountered an unexpected client-side error: ${msg}. Local guidance systems remain online.`;
+}
+
 export default function ChatAssistant({ 
   role, 
   language, 
@@ -139,33 +157,7 @@ export default function ChatAssistant({
         errName === 'BackendError' ||
         (typeof status === 'number' && status >= 400 && status < 600);
 
-      let errorMsgText = '';
-
-      if (isNetworkError) {
-        if (language === 'es') {
-          errorMsgText = 'El servidor de comando del estadio no está disponible temporalmente. Por favor, inténtelo de nuevo en un momento.';
-        } else if (language === 'fr') {
-          errorMsgText = 'Le serveur de commande du stade est temporairement indisponible. Veuillez réessayer dans un instant.';
-        } else {
-          errorMsgText = 'Stadium command server is temporarily unavailable. Please retry in a moment.';
-        }
-      } else if (isBackendError) {
-        if (language === 'es') {
-          errorMsgText = `El asistente de comando encontró un error de procesamiento: ${err.message}. Los sistemas de guía locales siguen en línea.`;
-        } else if (language === 'fr') {
-          errorMsgText = `L'assistant de commande a rencontré une erreur de traitement: ${err.message}. Les systèmes locaux restent en ligne.`;
-        } else {
-          errorMsgText = `The command assistant encountered a processing error: ${err.message}. Local guidance systems remain online.`;
-        }
-      } else {
-        if (language === 'es') {
-          errorMsgText = `El asistente de comando encontró un error inesperado en el cliente: ${err.message}. Los sistemas de guía locales siguen en línea.`;
-        } else if (language === 'fr') {
-          errorMsgText = `L'assistant de commande a rencontré une erreur cliente inattendue: ${err.message}. Les systèmes locaux restent en ligne.`;
-        } else {
-          errorMsgText = `The command assistant encountered an unexpected client-side error: ${err.message}. Local guidance systems remain online.`;
-        }
-      }
+      const errorMsgText = getChatErrorMessage(err, language, isNetworkError, isBackendError);
 
       const errorMsg = { 
         id: Math.random().toString(), 

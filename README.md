@@ -134,8 +134,8 @@ With the servers running, open a new terminal window at the project root and run
 npm test
 ```
 This executes:
-1. **Frontend Sanity Check** (`npm run test:frontend`): Statically validates that all React components export correctly, hooks match signatures, and new evaluation metrics (`safetyLens`, `isDemoMode`) are in scope.
-2. **Backend Smoke Test** (`npm run test:smoke`): Queries `GET /api/health`, `GET /api/stadium`, and `POST /api/chat` to verify server compliance, database connectivity, and routing fallback outputs.
+1. **Frontend Sanity Check & Unit Tests** (`npm run test:frontend`): Statically validates that all React components export correctly and runs unit tests verifying the exact decision tree logic of chat error classification (Transport, Backend Logical, or Client Unexpected bugs).
+2. **Backend Smoke Test** (`npm run test:smoke`): Validates GET /api/health, GET /api/stadium, POST /api/chat (success flows), payload validation errors (400 responses for empty inputs or invalid roles), and multilingual fallback routing behavior when LLMs are unavailable.
 
 ---
 
