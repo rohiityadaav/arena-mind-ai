@@ -48,7 +48,7 @@ export default function Header({
         )}
 
         {/* Laptop/Desktop Main Navigation Tabs */}
-        <nav className="hidden lg:flex items-center gap-6 border-l border-neutral-900 pl-6" aria-label="Desktop console tabs">
+        <nav className="hidden lg:flex items-center gap-6 border-l border-neutral-900 pl-6" aria-label="Desktop console tabs" role="tablist">
           <button 
             onClick={() => setActiveFeature && setActiveFeature('assistant')} 
             className={`text-[9px] font-mono tracking-widest uppercase transition-all duration-300 font-bold focus:outline-none focus:ring-1 focus:ring-white px-2 py-0.5 rounded ${

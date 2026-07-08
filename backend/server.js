@@ -12,6 +12,14 @@ const chatRouter = require('./routes/chat');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Security Headers to prevent clickjacking, MIME sniffing, and XSS injection vectors
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // CORS
 app.use(cors({
   origin: '*', // allow Vercel frontend
